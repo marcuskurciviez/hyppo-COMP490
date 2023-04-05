@@ -18,6 +18,10 @@ class TestManova:
         assert_almost_equal(stat, obs_stat, decimal=1)
         assert_almost_equal(pvalue, obs_pvalue, decimal=1)
 
+    @pytest.mark.parametrize(
+        "n, obs_stat, obs_pvalue",
+        [(1000, 0.005062841807278008, 1.0), (100, 8.24e-5, 0.9762956529114515)],
+    )
     def test_nonlinear_oned(self,n,obs_stat,obs_pvalue):
        np.random.seed(987654321)
        x,y=rot_ksamp("nonlinear",n,0,k=5, noise=False)

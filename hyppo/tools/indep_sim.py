@@ -94,14 +94,14 @@ def linear(n, p, noise=False, low=-1, high=1):
 
 def nonlinear(n, p, noise=False, low=-1, high=1):
     r"""
-    Linear simulation.
+    Nonlinear simulation.
 
-    Linear :math:`(X, Y) \in \mathbb{R}^p \times \mathbb{R}`:
+    Nonlinear :math:`(X, Y) \in \mathbb{R}^p \times \mathbb{R}`:
 
     .. math::
 
         X &\sim \mathcal{U}(-1, 1)^p \\
-        Y &= w^T X + \kappa \epsilon
+        Y &= \sin (w^T X) + \kappa \epsilon
 
     Parameters
     ----------
@@ -134,9 +134,10 @@ def nonlinear(n, p, noise=False, low=-1, high=1):
     x = _random_uniform(n, p, low, high)
     coeffs = _gen_coeffs(p)
     eps = _calc_eps(n)
-    y = x @ coeffs + 1 * noise * eps
+    y = np.sin(x @ coeffs) + 1 * noise * eps
 
     return x, y
+
 def exponential(n, p, noise=False, low=0, high=3):
     r"""
     Exponential simulation.
@@ -1111,7 +1112,7 @@ def multimodal_independence(n, p, prob=0.5, sep1=3, sep2=2):
 
 SIMULATIONS = {
     "linear": linear,
-    "nonlinear":nonlinear,
+    "nonlinear": nonlinear,
     "exponential": exponential,
     "cubic": cubic,
     "joint_normal": joint_normal,
