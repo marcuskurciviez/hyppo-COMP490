@@ -92,7 +92,51 @@ def linear(n, p, noise=False, low=-1, high=1):
 
     return x, y
 
+def nonlinear(n, p, noise=False, low=-1, high=1):
+    r"""
+    Linear simulation.
 
+    Linear :math:`(X, Y) \in \mathbb{R}^p \times \mathbb{R}`:
+
+    .. math::
+
+        X &\sim \mathcal{U}(-1, 1)^p \\
+        Y &= w^T X + \kappa \epsilon
+
+    Parameters
+    ----------
+    n : int
+        The number of samples desired by the simulation (>= 5).
+    p : int
+        The number of dimensions desired by the simulation (>= 1).
+    noise : bool, default: False
+        Whether or not to include noise in the simulation.
+    low : float, default: -1
+        The lower limit of the uniform distribution simulated from.
+    high : float, default: 1
+        The upper limit of the uniform distribution simulated from.
+
+    Returns
+    -------
+    x,y : ndarray of float
+        Simulated data matrices. ``x` and ``y`` have shapes ``(n, p)`` and ``(n, 1)``
+        where `n` is the number of samples and `p` is the number of
+        dimensions.
+    """
+    extra_args = {
+        "noise": (noise, bool),
+        "low": (low, float),
+        "high": (high, float),
+    }
+    check_in = _CheckInputs(n, p)
+    check_in(**extra_args)
+
+    x = _random_uniform(n, p, low, high)
+    coeffs = _gen_coeffs(p)
+    eps = _calc_eps(n)
+    y = x @ coeffs + 1 * noise * eps
+
+    return x, y
 def exponential(n, p, noise=False, low=0, high=3):
     r"""
     Exponential simulation.
@@ -735,7 +779,7 @@ def _square_diamond(n, p, noise=False, low=-1, high=1, period=-np.pi / 2):
     sig = np.identity(p)
     gauss_noise = np.random.multivariate_normal(np.zeros(p), sig, size=n)
 
-    x = u * np.cos(period) + v * np.sin(period) + 0.05 * p * gauss_noise * noise
+    x = u * np.cos(period) + v * np.sin(period) + 0.05 * p * gauss_noise
     y = -u * np.sin(period) + v * np.cos(period)
 
     return x, y
@@ -1067,6 +1111,7 @@ def multimodal_independence(n, p, prob=0.5, sep1=3, sep2=2):
 
 SIMULATIONS = {
     "linear": linear,
+    "nonlinear":nonlinear,
     "exponential": exponential,
     "cubic": cubic,
     "joint_normal": joint_normal,
