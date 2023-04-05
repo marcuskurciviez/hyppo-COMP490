@@ -50,3 +50,24 @@ class TestSmoothCF:
         stat, pvalue = SmoothCFTest(num_randfreq=1).test(x, y, random_state=1234)
         assert_almost_equal(stat, obs_stat, decimal=2)
         assert_almost_equal(pvalue, obs_pval, decimal=2)
+
+    def test_two_distributions(self):
+        np.random.seed(123)
+        x = np.random.normal(0, 1, size=(100, 1))
+        y = np.random.normal(1, 1, size=(100, 1))
+        stat, pval = SmoothCFTest().test(x, y)
+        assert pval < 0.05
+
+    def test_dependent_samples(self):
+        np.random.seed(123)
+        x = np.random.normal(0, 1, size=(100, 1))
+        y = x + np.random.normal(0, 0.5, size=(100, 1))
+        stat, pval = SmoothCFTest().test(x, y)
+        assert pval > 0.05
+
+    def test_high_dim(self):
+        np.random.seed(123)
+        x = np.random.normal(0, 1, size=(100, 10))
+        y = np.random.normal(0, 1, size=(100, 10))
+        stat, pval = SmoothCFTest().test(x, y)
+        assert pval > 0.05
