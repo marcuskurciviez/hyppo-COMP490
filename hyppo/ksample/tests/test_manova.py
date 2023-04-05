@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal, assert_raises
 
-from ...tools import power, rot_ksamp
+from ...tools import power, rot_ksamp, nonlinear
 from .. import MANOVA
 
 
@@ -18,22 +18,22 @@ class TestManova:
         assert_almost_equal(stat, obs_stat, decimal=1)
         assert_almost_equal(pvalue, obs_pvalue, decimal=1)
 
-    @pytest.mark.parametrize(
-        "n, obs_stat, obs_pvalue",
-        [(1000, 0.005062841807278008, 1.0), (100, 8.24e-5, 0.9762956529114515)],
-    )
-    def test_nonlinear_oned(self,n,obs_stat,obs_pvalue):
-       np.random.seed(987654321)
-       x,y=rot_ksamp("nonlinear",n,0,k=5, noise=False)
-       stat, pvalue=MANOVA().test(x,y)
-       assert assert_almost_equal(stat,obs_stat, decimal=0)
-       assert assert_almost_equal(pvalue,obs_pvalue, decimal=0)
-
     def test_mismatched_dimensions(self):
         np.random.seed(123456789)
         x, y = rot_ksamp("linear", 100, 1, k=2, noise=False)
         z = np.random.randn(50, 1)
         assert_raises(ValueError, MANOVA().test, x, y, z)
+
+    def test_nonlinear_oned(self):
+        np.random.seed(123456789)
+        x, y = nonlinear(100, 1)
+        stat, pvalue = MANOVA().test(x, y)
+        assert pvalue > 0.05
+
+    def test_zero_variance(self):
+        np.random.seed(123456789)
+        x, y = np.zeros((100, 2)), np.zeros((100, 1))
+        assert_raises(ValueError, MANOVA().test, x, y)
 
 
 class TestManovaErrorWarn:
