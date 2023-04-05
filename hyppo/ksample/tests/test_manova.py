@@ -24,6 +24,14 @@ class TestManova:
        stat, pvalue=MANOVA().test(x,y)
        assert assert_almost_equal(stat,obs_stat, decimal=0)
        assert assert_almost_equal(pvalue,obs_pvalue, decimal=0)
+
+    def test_mismatched_dimensions(self):
+        np.random.seed(123456789)
+        x, y = rot_ksamp("linear", 100, 1, k=2, noise=False)
+        z = np.random.randn(50, 1)
+        assert_raises(ValueError, MANOVA().test, x, y, z)
+
+
 class TestManovaErrorWarn:
     """Tests errors and warnings derived from MGC."""
 
