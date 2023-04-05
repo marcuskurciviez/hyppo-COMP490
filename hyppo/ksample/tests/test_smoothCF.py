@@ -52,6 +52,7 @@ class TestSmoothCF:
         assert_almost_equal(pvalue, obs_pval, decimal=2)
 
     def test_two_distributions(self):
+        """Test that generates sample size of 100 x 1 with two different normal distributions"""
         np.random.seed(123)
         x = np.random.normal(0, 1, size=(100, 1))
         y = np.random.normal(1, 1, size=(100, 1))
@@ -59,6 +60,7 @@ class TestSmoothCF:
         assert pval < 0.05
 
     def test_dependent_samples(self):
+        """Test generatestwo sample sizes, with ONE sample depending on the other"""
         np.random.seed(123)
         x = np.random.normal(0, 1, size=(100, 1))
         y = x + np.random.normal(0, 0.5, size=(100, 1))
@@ -66,6 +68,8 @@ class TestSmoothCF:
         assert pval > 0.05
 
     def test_high_dim(self):
+        """Test that generates sample size of 100 x 10 and tests if the SmoothCFTest correctly identifies
+        that they are from the same distribution by checking if the calculated p-value is greater than 0.05"""
         np.random.seed(123)
         x = np.random.normal(0, 1, size=(100, 10))
         y = np.random.normal(0, 1, size=(100, 10))
