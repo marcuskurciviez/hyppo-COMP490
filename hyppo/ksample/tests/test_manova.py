@@ -15,11 +15,15 @@ class TestManova:
         np.random.seed(123456789)
         x, y = rot_ksamp("linear", n, 1, k=2, noise=False)
         stat, pvalue = MANOVA().test(x, y)
-
         assert_almost_equal(stat, obs_stat, decimal=1)
         assert_almost_equal(pvalue, obs_pvalue, decimal=1)
 
-
+    def test_nonlinear_oned(self,n,obs_stat,obs_pvalue):
+       np.random.seed(987654321)
+       x,y=rot_ksamp("nonlinear",n,0,k=5, noise=False)
+       stat, pvalue=MANOVA().test(x,y)
+       assert assert_almost_equal(stat,obs_stat, decimal=0)
+       assert assert_almost_equal(pvalue,obs_pvalue, decimal=0)
 class TestManovaErrorWarn:
     """Tests errors and warnings derived from MGC."""
 
@@ -28,6 +32,7 @@ class TestManovaErrorWarn:
         x = np.arange(100).reshape(5, 20)
         y = np.arange(50, 150).reshape(5, 20)
         assert_raises(ValueError, MANOVA().test, x, y)
+
 
 
 class TestManovaTypeIError:
