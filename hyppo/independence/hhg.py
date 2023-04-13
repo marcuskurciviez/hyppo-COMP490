@@ -1,6 +1,6 @@
 import numpy as np
 from numba import jit
-from scipy.sparse.construct import random
+from scipy.sparse import random
 
 from ..tools import compute_dist
 from ._utils import _CheckInputs

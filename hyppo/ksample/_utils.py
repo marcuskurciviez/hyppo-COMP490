@@ -14,7 +14,7 @@ class _CheckInputs:
         for i in self.inputs:
             contains_nan(i)
         self.inputs = self.check_dim()
-        self.inputs = self._convert_inputs_float64()
+        # self.inputs = self._convert_inputs_float64()
         self._check_indep_test()
         self._check_min_samples()
 
@@ -52,8 +52,8 @@ class _CheckInputs:
                 "Shape mismatch, inputs must have shape " "[n, p] and [m, p]."
             )
 
-    def _convert_inputs_float64(self):
-        return [np.asarray(i).astype(np.float64) for i in self.inputs]
+    # def _convert_inputs_float64(self):
+    #     return [np.asarray(i).astype(np.float64) for i in self.inputs]
 
     def _check_indep_test(self):
         tests = ["cca", "dcorr", "hhg", "rv", "hsic", "mgc", "kmerf"]
