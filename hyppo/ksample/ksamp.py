@@ -187,6 +187,7 @@ class KSample(KSampleTest):
             "kmerf": {"forest": "classifier"},
             "rv": {},
             "cca": {},
+
         }
 
         if type(indep_test) is list:
