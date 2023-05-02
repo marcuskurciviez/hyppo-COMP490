@@ -1,6 +1,14 @@
 from abc import ABC, abstractmethod
 from typing import NamedTuple
 
+import numpy as np
+from joblib import Parallel, delayed
+from scipy.stats import percentileofscore
+
+from examples.permutation_tree import X, Y
+
+from tutorials.ksample import y, x
+
 
 class KSampleTestOutput(NamedTuple):
     stat: float
@@ -47,7 +55,35 @@ class KSampleTest(ABC):
     **kwargs
         Arbitrary keyword arguments for ``compute_distkern``.
     """
+    def _permute(self, X, Y, n_perm, block_size, compute_distance=None, **kwargs):
+        n = X.shape[0]
+        m = Y.shape[0]
+        xy = np.vstack([X, Y])
+        indices = np.arange(n + m)
+        shuffle_indices = np.random.permutation(indices)
+        shuffle_indices_X = shuffle_indices[:n]
+        shuffle_indices_Y = shuffle_indices[n:]
 
+        stat_perm = []
+        for i in range(n_perm):
+            block_indices_X = np.split(shuffle_indices_X, range(block_size, n, block_size))
+            block_indices_Y = np.split(shuffle_indices_Y, range(block_size, m, block_size))
+
+            # within-block permutation of X and Y
+            for j in range(len(block_indices_X)):
+                block_indices_X[j] = np.random.permutation(block_indices_X[j])
+            for j in range(len(block_indices_Y)):
+                block_indices_Y[j] = np.random.permutation(block_indices_Y[j])
+
+            # reconstruct the permuted matrix
+            permuted_indices = np.hstack(block_indices_X + block_indices_Y)
+            permuted_xy = xy[permuted_indices]
+
+            # compute test statistic of the permuted matrix
+            stat_perm.append(self.statistic(*np.split(permuted_xy, [n])))
+
+        # calculate p-value
+        self.pvalue = (percentileofscore(stat_perm, self.stat) / 100.0)
     def __init__(self, compute_distance=None, bias=False, **kwargs):
         # set statistic and p-value
         self.stat = None
@@ -78,7 +114,7 @@ class KSampleTest(ABC):
         """
 
     @abstractmethod
-    def test(self, *args, reps=1000, workers=1, random_state=None):
+    def test(self, *args, reps=1000, workers=1, random_state=None, block_size=None):
         r"""
         Calculates the *k*-sample test statistic and p-value.
 
@@ -103,3 +139,21 @@ class KSampleTest(ABC):
         pvalue : float
             The computed *k*-sample p-value.
         """
+        if block_size is not None:
+            # perform block permutation
+            permute_args = (X, Y, reps, block_size, self.compute_distance) + self.kwargs.items()
+            stat_perm = Parallel(n_jobs=workers, verbose=0)(
+                delayed(self._permute)(*permute_args, random_state=random_state + i)
+                for i in range(reps))
+            self.pvalue = np.mean(stat_perm >= self.stat)
+        else:
+            # perform regular permutation
+            perms = np.array([
+                np.random.permutation(np.vstack([x, y]))
+                for _ in range(reps)])
+            pstat = np.array([
+                self.statistic(*np.split(perm, [x.shape[0]]))
+                for perm in perms])
+            self.pvalue = np.mean(pstat >= self.stat)
+
+        return KSampleTestOutput(stat=self.stat, pvalue=self.pvalue)
