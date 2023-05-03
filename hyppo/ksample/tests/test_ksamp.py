@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal, assert_raises
 
+from ..base import KSampleTest
 from ...tools import power, rot_ksamp
 from .. import KSample
 from kfda import Kfda
@@ -99,14 +100,13 @@ class TestKSampleBlockPerm:
     def test_block_permutation(self):
         np.random.seed(123456789)
         x = np.random.rand(40, 5)
-        kstest = KSample("Dcorr")
+        kstest = KSampleTest(compute_distance="euclidean")
         permuted_x = kstest._block_permutation(x, block_size=10)
-
         # check if the shape remains the same after permutation
         assert x.shape == permuted_x.shape
-
         # check if the permuted_x is indeed a permutation of x
         assert np.all(np.sort(x, axis=0) == np.sort(permuted_x, axis=0))
+
 
     def test_block_permutation_stat(self):
         np.random.seed(123456789)
