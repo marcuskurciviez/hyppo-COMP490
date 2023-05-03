@@ -16,7 +16,7 @@ class _CheckInputs:
             check_array(mat)
             contains_nan(mat)
             self._check_dim(mat)
-            self._convert_float64(mat)
+            # self._convert_float64(mat)
             self._check_min_samples(mat)
             self._check_variance(mat)
 

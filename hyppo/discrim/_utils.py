@@ -26,7 +26,7 @@ class _CheckInputs:
             contains_nan(x1)
             contains_nan(self.y)
             check_min_samples(x1)
-            x1, self.y = convert_xy_float64(x1, self.y)
+            # x1, self.y = convert_xy_float64(x1, self.y)
             tmp_.append(self._condition_input(x1))
 
         self.x = tmp_

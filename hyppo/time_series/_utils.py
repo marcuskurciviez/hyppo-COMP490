@@ -25,7 +25,7 @@ class _CheckInputs:
         contains_nan(self.y)
         self.max_lag = self._check_max_lag()
         self.x, self.y = self.check_dim_xy()
-        self.x, self.y = convert_xy_float64(self.x, self.y)
+        # self.x, self.y = convert_xy_float64(self.x, self.y)
         self._check_min_samples()
 
         if self.reps:

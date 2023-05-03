@@ -31,12 +31,13 @@ def interleave(x, z, seed=None):
     """
     state = np.random.get_state()
     np.random.seed(seed or int(time.time()))
-    total_ids = np.random.permutation(x.shape[1]+z.shape[1])
+    total_ids = np.random.permutation(x.shape[1] + z.shape[1])
     np.random.set_state(state)
     out = np.zeros([x.shape[0], x.shape[1] + z.shape[1]])
     out[:, total_ids[:x.shape[1]]] = x
     out[:, total_ids[x.shape[1]:]] = z
     return out
+
 
 def cv_besttree(x, y, z, cv_grid, logdim, verbose, prop_test):
     """ Choose the best decision tree hyperparameters by
@@ -54,7 +55,7 @@ def cv_besttree(x, y, z, cv_grid, logdim, verbose, prop_test):
         DecisionTreeRegressor with the best hyperparameter setting.
     """
     xz_dim = x.shape[1] + z.shape[1]
-    max_features='log2' if (logdim and xz_dim > 10) else None
+    max_features = 'log2' if (logdim and xz_dim > 10) else None
     if cv_grid is None:
         min_samples_split = 2
     elif len(cv_grid) == 1:
@@ -63,14 +64,15 @@ def cv_besttree(x, y, z, cv_grid, logdim, verbose, prop_test):
         clf = DecisionTreeRegressor(max_features=max_features)
         splitter = ShuffleSplit(n_splits=3, test_size=prop_test)
         cv = GridSearchCV(estimator=clf, cv=splitter,
-            param_grid={'min_samples_split': cv_grid}, n_jobs=-1)
+                          param_grid={'min_samples_split': cv_grid}, n_jobs=-1)
         cv.fit(interleave(x, z), y)
         min_samples_split = cv.best_params_['min_samples_split']
     if verbose:
         print('min_samples_split: {}.'.format(min_samples_split))
     clf = DecisionTreeRegressor(max_features=max_features,
-        min_samples_split=min_samples_split)
+                                min_samples_split=min_samples_split)
     return clf
+
 
 def obtain_error(data_and_i):
     """
@@ -99,12 +101,12 @@ def obtain_error(data_and_i):
 
     clf.fit(x_z[data_permutation][n_test:], y[data_permutation][n_test:])
     return mse(y[data_permutation][:n_test],
-        clf.predict(x_z[data_permutation][:n_test]))
+               clf.predict(x_z[data_permutation][:n_test]))
 
 
 def test(x, y, z=None, num_perm=8, prop_test=.1,
-    discrete=(False, False), plot_return=False, verbose=False,
-    logdim=False, cv_grid=[2, 8, 64, 512, 1e-2, .2, .4], **kwargs):
+         discrete=(False, False), plot_return=False, verbose=False,
+         logdim=False, cv_grid=[2, 8, 64, 512, 1e-2, .2, .4], **kwargs):
     """ Fast conditional independence test, based on decision-tree regression.
     See Chalupka, Perona, Eberhardt 2017 [arXiv link coming].
     Args:
@@ -151,14 +153,14 @@ def test(x, y, z=None, num_perm=8, prop_test=.1,
     # Compute mses for y = f(x, z), varying train-test splits.
     clf = cv_besttree(x, y, z, cv_grid, logdim, verbose, prop_test=prop_test)
     datadict = {
-            'x': x,
-            'y': y,
-            'z': z,
-            'data_permutation': data_permutations,
-            'n_test': n_test,
-            'reshuffle': False,
-            'clf': clf,
-            }
+        'x': x,
+        'y': y,
+        'z': z,
+        'data_permutation': data_permutations,
+        'n_test': n_test,
+        'reshuffle': False,
+        'clf': clf,
+    }
     d1_stats = np.array(joblib.Parallel(n_jobs=-1, max_nbytes=100e6)(
         joblib.delayed(obtain_error)((datadict, i)) for i in range(num_perm)))
 
@@ -191,5 +193,3 @@ def test(x, y, z=None, num_perm=8, prop_test=.1,
         return (p_value, d0_stats, d1_stats)
     else:
         return p_value
-
-
