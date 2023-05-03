@@ -4,6 +4,7 @@ from typing import NamedTuple
 import numpy as np
 from joblib import Parallel, delayed
 from scipy.stats import percentileofscore
+from sklearn.metrics import pairwise_distances, pairwise_kernels
 
 from examples.permutation_tree import X, Y
 
@@ -85,15 +86,32 @@ class KSampleTest(ABC):
         # calculate p-value
         self.pvalue = (percentileofscore(stat_perm, self.stat) / 100.0)
     def __init__(self, compute_distance=None, bias=False, **kwargs):
-        # set statistic and p-value
-        self.stat = None
-        self.pvalue = None
-        self.bias = bias
         self.compute_distance = compute_distance
+        self.bias = bias
         self.kwargs = kwargs
 
-        super().__init__()
+    def _block_permutation(self, X, block_size):
+        n = X.shape[0]
+        n_blocks = n // block_size
+        permuted_X = np.zeros_like(X)
 
+        for i in range(n_blocks):
+            block_start = i * block_size
+            block_end = (i + 1) * block_size
+            block = X[block_start:block_end]
+            permuted_X[block_start:block_end] = np.random.permutation(block)
+
+        return permuted_X
+
+    def _compute_distance(self, X, Y=None):
+        if callable(self.compute_distance):
+            return self.compute_distance(X, Y, **self.kwargs)
+        elif self.compute_distance in pairwise_distances.VALID_METRICS:
+            return pairwise_distances(X, Y, metric=self.compute_distance, **self.kwargs)
+        elif self.compute_distance in pairwise_kernels.VALID_KERNELS:
+            return pairwise_kernels(X, Y, metric=self.compute_distance, **self.kwargs)
+        else:
+            raise ValueError("Invalid distance metric specified.")
     @abstractmethod
     def statistic(self, *args):
         r"""
