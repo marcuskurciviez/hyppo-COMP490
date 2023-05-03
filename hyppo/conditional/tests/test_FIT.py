@@ -1,6 +1,6 @@
 from operator import concat
 from random import random
-
+from FIT import cross_validate
 from numpy import floor
 from numpy import np
 from scipy.stats import ttest_1samp
@@ -29,3 +29,15 @@ def test_cv_besttree():
     prop_test = 0.1
     clf = cv_besttree(x, y, z, cv_grid, logdim, verbose, prop_test)
     assert clf, "cv_besttree should return a DecisionTreeRegressor."
+
+def test_FIT_TEST(x , y , z , n_perm =8 , frac_test=.1):
+    x = np.random.rand(50, 2)
+    y = np.random.rand(50, 1)
+    z = np.random.rand(50, 2)
+    best_tree_x=cross_validate(x,y,z)
+    best_tree_x.fit(np.concatenate((x,z), axis=1), y)
+    mses_x = list()
+    mses_x.append(
+        mses_x(best_tree_x.predict(np.concatenate((x, z), axis=1)), y))
+    mses_x.append(mses_x(best_tree_x.predict(z), y))
+    assert best_tree_x
