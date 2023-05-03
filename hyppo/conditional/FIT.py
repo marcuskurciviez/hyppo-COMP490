@@ -195,31 +195,31 @@ def test(x, y, z=None, num_perm=8, prop_test=.1,
         return (p_value, d0_stats, d1_stats)
     else:
         return p_value
-def cross_validate(covarite,regressand):
-
-
+def cross_validate(covariate, regressand, z, cv_grid, logdim, prop_test):
+    best_tree = cv_besttree(covariate, regressand, z, cv_grid, logdim, False, prop_test)
+    return best_tree
 
 def fit_test (x , y , z , n_perm =8 , frac_test=.1 ):
-    n_samples=x.shape[0]
-    n_test=floor(frac_test*n_samples)
-    best_tree_x=cross_validate(concat(x,z),y)
-    best_tree_nox=cross_validate(z,y)
-    mses_x= list()
-    mses_nox=list()
-    for perm_id in range (n_perm):
-        perm_ids=random.permuations(n_samples)
-        x_test,x_train= x[perm_ids][:n_test],x[perm_id][n_test:]
-        y_test, y_train = y[perm_ids][:n_test], y[perm_id][n_test:]
-        z_test, z_train = z[perm_ids][:n_test], z[perm_id][n_test:]
-        best_tree_x.train(concat(x_train,z_train),y_train)
+    n_samples = x.shape[0]
+    n_test = floor(frac_test*n_samples)
+    best_tree_x = cross_validate(np.concatenate((x, z), axis=1), y, z, cv_grid=[2, 8, 64, 512, 1e-2, .2, .4], logdim=False, prop_test=0.1)
+    best_tree_nox = cross_validate(z, y, z, cv_grid=[2, 8, 64, 512, 1e-2, .2, .4], logdim=False, prop_test=0.1)
+    mses_x = list()
+    mses_nox = list()
+    for perm_id in range(n_perm):
+        perm_ids = np.random.permutation(n_samples)
+        x_test, x_train = x[perm_ids][:n_test], x[perm_ids][n_test:]
+        y_test, y_train = y[perm_ids][:n_test], y[perm_ids][n_test:]
+        z_test, z_train = z[perm_ids][:n_test], z[perm_ids][n_test:]
+        best_tree_x.fit(np.concatenate((x_train, z_train), axis=1), y_train)
         mses_x.append(
-            mse(best_tree_x.predict(concat(x_test,z_test)),y_test))
-        best_tree_nox.train(z_train,y_train)
-        mses_nox.append((mse(best_tree_nox.predict(z_test))))
+            mse(best_tree_x.predict(np.concatenate((x_test, z_test), axis=1)), y_test))
+        best_tree_nox.fit(z_train, y_train)
+        mses_nox.append(mse(best_tree_nox.predict(z_test), y_test))
 
-        t,pval=ttest_1samp(mses_nox-mses_x)
-        if t<0:
-            return 1- pval/2.
-        else:
-            return pval/2.
+    t, pval = ttest_1samp(np.array(mses_nox) - np.array(mses_x), 0)
+    if t < 0:
+        return 1 - pval / 2.
+    else:
+        return pval / 2.
 
