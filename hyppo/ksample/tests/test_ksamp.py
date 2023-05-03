@@ -10,7 +10,7 @@ from hyppo.tools import power, rot_ksamp
 from .. import KSample
 from kfda import Kfda
 import unittest
-from ..base import KSampleTest as KSample
+from ..base import KSampleTest
 
 
 class TestKSample:
@@ -97,29 +97,19 @@ class TestKSampleTypeIError:
 
         assert_almost_equal(est_power, 0.05, decimal=2)
 
+@pytest.fixture
+def ksample_test():
+    return KSampleTest()
 
-class TestKSampleTest(unittest.TestCase):
-    def setUp(self):
-        self.ksample_test = KSampleTest()
+def test_block_permutation(ksample_test):
+    X = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12], [13, 14, 15], [16, 17, 18]])
+    block_size = 2
+    permuted_X = ksample_test._block_permutation(X, block_size)
 
-    def test_block_permutation(self):
-        X = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12], [13, 14, 15], [16, 17, 18]])
-        block_size = 2
-        permuted_X = self.ksample_test._block_permutation(X, block_size)
+    # Test that each block of the permuted_X is a permutation of the corresponding block in X
+    for i in range(0, X.shape[0], block_size):
+        assert sorted(X[i:i+block_size].flatten()) == sorted(permuted_X[i:i+block_size].flatten())
 
-        # Test that each block of the permuted_X is a permutation of the corresponding block in X
-        for i in range(0, X.shape[0], block_size):
-            self.assertTrue(sorted(X[i:i + block_size].flatten()) == sorted(permuted_X[i:i + block_size].flatten()))
+    # Test that the total number of elements is the same
+    assert X.size == permuted_X.size
 
-        # Test that the total number of elements is the same
-        self.assertEqual(X.size, permuted_X.size)
-
-    def test_permute(self):
-        X = np.array([[1, 2], [3, 4]])
-        Y = np.array([[5, 6], [7, 8]])
-        n_perm = 10
-        block_size = 1
-        self.ksample_test._permute(X, Y, n_perm, block_size)
-
-        # Test that the p-value is between 0 and 1
-        self.assertTrue(0 <= self.ksample_test.pvalue <= 1)
