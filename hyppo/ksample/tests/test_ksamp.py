@@ -9,6 +9,7 @@ from ..base import KSampleTest
 from ...tools import power, rot_ksamp
 from .. import KSample
 from kfda import Kfda
+from hyppo.independence import Dcorr
 
 
 class TestKSample:
@@ -96,18 +97,25 @@ class TestKSampleTypeIError:
 
         assert_almost_equal(est_power, 0.05, decimal=2)
 
+class DcorrKSampleTest(KSampleTest):
+    def __init__(self, compute_distance='euclidean', **kwargs):
+        super().__init__(compute_distance=compute_distance, **kwargs)
+
+    def test(self, *args, reps=1000, workers=1, random_state=None, block_size=None):
+        return super().test(*args, reps=reps, workers=workers, random_state=random_state, block_size=block_size)
+
 class TestKSampleBlockPerm:
     def test_block_permutation_stat(self):
         np.random.seed(123456789)
         x, y = rot_ksamp("linear", 50, 1, k=2)
-        kstest = KSampleTest(compute_distance="euclidean")
+        kstest = DcorrKSampleTest(compute_distance="euclidean")
         stat, pvalue = kstest.test(x, y, reps=100, workers=1, random_state=None, block_size=10)
 
 
     def test_block_permutation_pvalue(self):
         np.random.seed(123456789)
         x, y = rot_ksamp("linear", 50, 1, k=2)
-        kstest = KSampleTest(compute_distance="euclidean")
+        kstest = DcorrKSampleTest(compute_distance="euclidean")
         stat, pvalue = kstest.test(x, y, reps=100, workers=1, random_state=None, block_size=10)
         # test the statistic value after block permutation
         assert_almost_equal(stat, 0.0317, decimal=1)
