@@ -11,7 +11,7 @@ from .. import KSample
 from kfda import Kfda
 import numpy as np
 from hyppo.independence import Dcorr
-from hyppo.ksample import base
+from hyppo.ksample.base import KSampleTest
 
 
 class TestKSample:
@@ -116,6 +116,10 @@ class DcorrKSampleTest(KSampleTest):
             permuted_blocks = np.random.permutation(np.split(arr, num_blocks))
             arrays[i] = np.concatenate(permuted_blocks)
         return tuple(arrays)
+
+    def statistic(self, *args):
+        dcorr = Dcorr(compute_distance=self.compute_distance)
+        return dcorr.statistic(*args)
 
 class TestKSampleBlockPerm:
     def test_block_permutation_stat(self):
