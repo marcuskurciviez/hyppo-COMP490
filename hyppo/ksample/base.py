@@ -56,7 +56,7 @@ class KSampleTest(ABC):
     **kwargs
         Arbitrary keyword arguments for ``compute_distkern``.
     """
-    def _permute(self, X, Y, n_perm, block_size, compute_distance=None, **kwargs):
+    def permute(self, X, Y, n_perm, block_size, compute_distance=None, **kwargs):
         n = X.shape[0]
         m = Y.shape[0]
         xy = np.vstack([X, Y])
@@ -90,7 +90,7 @@ class KSampleTest(ABC):
         self.bias = bias
         self.kwargs = kwargs
 
-    def _block_permutation(self, X, block_size):
+    def block_permutation(self, X, block_size):
         n = X.shape[0]
         n_blocks = n // block_size
         permuted_X = np.zeros_like(X)
@@ -103,7 +103,7 @@ class KSampleTest(ABC):
 
         return permuted_X
 
-    def _compute_distance(self, X, Y=None):
+    def compute_distance(self, X, Y=None):
         if callable(self.compute_distance):
             return self.compute_distance(X, Y, **self.kwargs)
         elif self.compute_distance in pairwise_distances.VALID_METRICS:
