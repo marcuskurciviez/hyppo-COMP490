@@ -1,38 +1,33 @@
-# import numpy as np
-# from .base import ConditionalIndependenceTest, ConditionalIndependenceTestOutput
-#
-#
-# def kernel_conditional_independence_test(x, y, z, alpha=0.05):
-#     # Compute kernel matrices
-#     Kx = np.exp(-np.square(np.linalg.norm(x[:, None, :] - x, axis=-1)) / (2 * np.median(np.abs(x - np.median(x)))))
-#     Ky = np.exp(-np.square(np.linalg.norm(y[:, None, :] - y, axis=-1)) / (2 * np.median(np.abs(y - np.median(y)))))
-#     Kz = np.exp(-np.square(np.linalg.norm(z[:, None, :] - z, axis=-1)) / (2 * np.median(np.abs(z - np.median(z)))))
-#
-#     # Compute test statistic
-#     kcit = ("KCIT")
-#     p_value = kcit.test(Kx, Ky, Kz).pvalue
-#
-#     # Determine statistical significance
-#     if p_value < alpha:
-#         return "Dependent"
-#     else:
-#         return "Independent"
-#
-#
-# # Set random seed for reproducibility
-# np.random.seed(123)
-#
-# # Generate three variables x, y, and z
-# n = 100  # Sample size
-# d = 2  # Number of variables
-# x = np.random.normal(size=(n, d))
-# y = np.random.normal(size=(n, d))
-# z = np.random.normal(size=(n, d))
-#
-# # Create a linear dependence between x and y given z
-# x[:, 0] = x[:, 0] + z[:, 0]
-# y[:, 1] = y[:, 1] + z[:, 1]
-#
-# # Test for conditional independence between x and y given z
-# result = kernel_conditional_independence_test(x, y, z)
-# print(result)  # Should output "Dependent"
+import numpy as np
+from hyppo.conditional import KCI
+from hyppo.tools import perm_test
+
+
+def PKCIT(x, y, n_perm=1000, alpha=0.05):
+    """
+    Permutation-Based Kernel Conditional Independence Test.
+    Parameters
+    ----------
+    x, y : ndarray
+        Input data matrices. ``x`` and ``y`` must have the same number of
+        columns. That is, the shapes must be ``(n, p)`` and ``(n, 1)`` where
+        `n` is the dimension of samples and `p` is the number of
+        dimensions.
+    n_perm : int, optional
+        The number of permutations used to estimate the null distribution of the
+        test statistic. Default is 1000.
+    alpha : float, optional
+        The level of the test. Default is 0.05.
+
+    Returns
+    -------
+    stat : float
+        The computed PKCIT statistic.
+    pvalue : float
+        The computed PKCIT p-value.
+    """
+    kcit = KCI()
+    obs_stat = kcit.statistic(x, y)
+    null_dist = perm_test(kcit, x, y, n_perm=n_perm)
+    pvalue = (null_dist >= obs_stat).sum() / n_perm
+    return obs_stat, pvalue
