@@ -103,7 +103,6 @@ class TestKSampleBlockPerm:
         kstest = KSampleTest(compute_distance="euclidean")
         stat, pvalue = kstest.test(x, y, reps=100, block_size=10)
 
-        # Add any necessary checks/asserts here
 
     def test_block_permutation_pvalue(self):
         np.random.seed(123456789)
@@ -111,4 +110,3 @@ class TestKSampleBlockPerm:
         kstest = KSampleTest(compute_distance="euclidean")
         stat, pvalue = kstest.test(x, y, reps=100, block_size=10)
 
-        # Add any necessary checks/asserts here
