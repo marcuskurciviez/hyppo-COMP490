@@ -104,7 +104,7 @@ def ksample_test():
 def test_block_permutation(ksample_test):
     X = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12], [13, 14, 15], [16, 17, 18]])
     block_size = 2
-    permuted_X = ksample_test._block_permutation(X, block_size)
+    permuted_X = ksample_test.block_permutation(X, block_size)
 
     # Test that each block of the permuted_X is a permutation of the corresponding block in X
     for i in range(0, X.shape[0], block_size):
