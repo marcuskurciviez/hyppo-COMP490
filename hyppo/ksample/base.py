@@ -159,9 +159,11 @@ class KSampleTest(ABC):
         """
         if block_size is not None:
             # perform block permutation
-            X, Y = args
-            self._permute(X, Y, reps, block_size, self.compute_distance, **self.kwargs)
-            self.stat = self.statistic(*args)
+            permute_args = (X, Y, reps, block_size, self.compute_distance) + self.kwargs.items()
+            stat_perm = Parallel(n_jobs=workers, verbose=0)(
+                delayed(self._permute)(*permute_args, random_state=random_state + i)
+                for i in range(reps))
+            self.pvalue = np.mean(stat_perm >= self.stat)
         else:
             # perform regular permutation
             perms = np.array([

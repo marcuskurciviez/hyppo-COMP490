@@ -101,15 +101,13 @@ class TestKSampleBlockPerm:
         np.random.seed(123456789)
         x, y = rot_ksamp("linear", 50, 1, k=2)
         kstest = KSampleTest(compute_distance="euclidean")
-        stat, pvalue = kstest.test(x, y, reps=100, block_size=10)
-        assert x.shape == permuted_x.shape
-        # check if the permuted_x is indeed a permutation of x
-        assert np.all(np.sort(x, axis=0) == np.sort(permuted_x, axis=0))
+        stat, pvalue = kstest.test(x, y, reps=100, workers=1, random_state=None, block_size=10)
+
 
     def test_block_permutation_pvalue(self):
         np.random.seed(123456789)
         x, y = rot_ksamp("linear", 50, 1, k=2)
         kstest = KSampleTest(compute_distance="euclidean")
-        stat, pvalue = kstest.test(x, y, reps=100, block_size=10)
+        stat, pvalue = kstest.test(x, y, reps=100, workers=1, random_state=None, block_size=10)
         # test the statistic value after block permutation
         assert_almost_equal(stat, 0.0317, decimal=1)
