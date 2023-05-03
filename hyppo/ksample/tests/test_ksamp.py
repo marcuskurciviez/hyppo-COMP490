@@ -6,10 +6,12 @@ import pytest
 from numpy.testing import assert_almost_equal, assert_raises
 
 from ..base import KSampleTest
-from ...tools import power, rot_ksamp
+from hyppo.tools import power, rot_ksamp
 from .. import KSample
 from kfda import Kfda
+import numpy as np
 from hyppo.independence import Dcorr
+from hyppo.ksample import base
 
 
 class TestKSample:
@@ -97,12 +99,23 @@ class TestKSampleTypeIError:
 
         assert_almost_equal(est_power, 0.05, decimal=2)
 
+
 class DcorrKSampleTest(KSampleTest):
     def __init__(self, compute_distance='euclidean', **kwargs):
         super().__init__(compute_distance=compute_distance, **kwargs)
 
     def test(self, *args, reps=1000, workers=1, random_state=None, block_size=None):
-        return super().test(*args, reps=reps, workers=workers, random_state=random_state, block_size=block_size)
+        if block_size:
+            args = self._block_permutation(args, block_size)
+        return super().test(*args, reps=reps, workers=workers, random_state=random_state)
+
+    def _block_permutation(self, arrays, block_size):
+        arrays = list(arrays)
+        for i, arr in enumerate(arrays):
+            num_blocks = len(arr) // block_size
+            permuted_blocks = np.random.permutation(np.split(arr, num_blocks))
+            arrays[i] = np.concatenate(permuted_blocks)
+        return tuple(arrays)
 
 class TestKSampleBlockPerm:
     def test_block_permutation_stat(self):
