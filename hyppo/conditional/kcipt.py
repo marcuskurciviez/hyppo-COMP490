@@ -28,6 +28,6 @@ def PKCIT(x, y, n_perm=1000, alpha=0.05):
     """
     kcit = KCI()
     obs_stat = kcit.statistic(x, y)
-    null_dist = perm_test(kcit, x, y, n_perm=n_perm)
+    null_dist = perm_test(kcit, x, y)
     pvalue = (null_dist >= obs_stat).sum() / n_perm
     return obs_stat, pvalue
