@@ -9,9 +9,8 @@ from ..base import KSampleTest
 from hyppo.tools import power, rot_ksamp
 from .. import KSample
 from kfda import Kfda
-import numpy as np
-from hyppo.independence import Dcorr
-from hyppo.ksample.base import KSampleTest
+import unittest
+from ..base import KSampleTest as KSample
 
 
 class TestKSample:
@@ -29,17 +28,16 @@ class TestKSample:
 
     def test_twosamp_kdf(self):
         np.random.seed(123456789)
-        NewArray = [5],[5]
+        NewArray = [5], [5]
 
         x, y = rot_ksamp("linear", 10, 5, k=2)
         stat, pvalue = KSample("CCA").test(x, y)
-        for z in range(5,5):
-         for a in range(5,5):
-
-            NewArray[z]=stat
-            NewArray[a]=pvalue
+        for z in range(5, 5):
+            for a in range(5, 5):
+                NewArray[z] = stat
+                NewArray[a] = pvalue
         cls = Kfda(n_components=2, kernel='linear')
-        cls.fit(NewArray,[2,1])
+        cls.fit(NewArray, [2, 1])
         cls.predict(NewArray)
         assert cls.predict(NewArray).any()
 
@@ -100,39 +98,35 @@ class TestKSampleTypeIError:
         assert_almost_equal(est_power, 0.05, decimal=2)
 
 
-class DcorrKSampleTest(KSampleTest):
-    def __init__(self, compute_distance='euclidean', **kwargs):
-        super().__init__(compute_distance=compute_distance, **kwargs)
+class TestKSampleTest(unittest.TestCase):
+    class DummyKSampleTest(KSample):
+        def statistic(self, *args):
+            return 0
 
-    def test(self, *args, reps=1000, workers=1, random_state=None, block_size=None):
-        if block_size:
-            args = self._block_permutation(args, block_size)
-        return super().test(*args, reps=reps, workers=workers, random_state=random_state)
+        def test(self, *args, reps=1000, workers=1, random_state=None, block_size=None):
+            pass
 
-    def _block_permutation(self, arrays, block_size):
-        arrays = list(arrays)
-        for i, arr in enumerate(arrays):
-            num_blocks = len(arr) // block_size
-            permuted_blocks = np.random.permutation(np.split(arr, num_blocks))
-            arrays[i] = np.concatenate(permuted_blocks)
-        return tuple(arrays)
+    def setUp(self):
+        self.kst = self.DummyKSampleTest()
 
-    def statistic(self, *args):
-        dcorr = Dcorr(compute_distance=self.compute_distance)
-        return dcorr.statistic(*args)
+    def test_block_permutation(self):
+        X = np.array([[1, 2], [3, 4], [5, 6], [7, 8]])
+        block_size = 2
+        np.random.seed(42)
+        permuted_X = self.kst._block_permutation(X, block_size)
+        expected_permuted_X = np.array([[5, 6], [7, 8], [1, 2], [3, 4]])
+        self.assertTrue(np.array_equal(permuted_X, expected_permuted_X))
 
-class TestKSampleBlockPerm:
-    def test_block_permutation_stat(self):
-        np.random.seed(123456789)
-        x, y = rot_ksamp("linear", 50, 1, k=2)
-        kstest = DcorrKSampleTest(compute_distance="euclidean")
-        stat, pvalue = kstest.test(x, y, reps=100, workers=1, random_state=None, block_size=10)
+    def test_permute(self):
+        X = np.array([[1, 2], [3, 4]])
+        Y = np.array([[5, 6], [7, 8]])
+        n_perm = 10
+        block_size = 2
+        np.random.seed(42)
+        self.kst._permute(X, Y, n_perm, block_size)
+        expected_pvalue = 1.0
+        self.assertEqual(self.kst.pvalue, expected_pvalue)
 
 
-    def test_block_permutation_pvalue(self):
-        np.random.seed(123456789)
-        x, y = rot_ksamp("linear", 50, 1, k=2)
-        kstest = DcorrKSampleTest(compute_distance="euclidean")
-        stat, pvalue = kstest.test(x, y, reps=100, workers=1, random_state=None, block_size=10)
-        # test the statistic value after block permutation
-        assert_almost_equal(stat, 0.0317, decimal=1)
+if __name__ == '__main__':
+    unittest.main()

@@ -176,3 +176,4 @@ class KSampleTest(ABC):
             self.pvalue = np.mean(pstat >= self.stat)
 
         return KSampleTestOutput(stat=self.stat, pvalue=self.pvalue)
+
