@@ -86,9 +86,13 @@ class KSampleTest(ABC):
         # calculate p-value
         self.pvalue = (percentileofscore(stat_perm, self.stat) / 100.0)
     def __init__(self, compute_distance=None, bias=False, **kwargs):
+        self.stat = None
+        self.pvalue = None
         self.compute_distance = compute_distance
         self.bias = bias
         self.kwargs = kwargs
+
+        super().__init__()
 
     def block_permutation(self, X, block_size):
         n = X.shape[0]
