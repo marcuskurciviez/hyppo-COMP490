@@ -74,3 +74,34 @@ class TestKSampleTypeIError:
         )
 
         assert_almost_equal(est_power, 0.05, decimal=2)
+
+class TestKSampleBlockPerm:
+    def test_block_permutation(self):
+        np.random.seed(123456789)
+        x = np.random.rand(40, 5)
+        kstest = KSample("Dcorr")
+        permuted_x = kstest._block_permutation(x, block_size=10)
+
+        # check if the shape remains the same after permutation
+        assert x.shape == permuted_x.shape
+
+        # check if the permuted_x is indeed a permutation of x
+        assert np.all(np.sort(x, axis=0) == np.sort(permuted_x, axis=0))
+
+    def test_block_permutation_stat(self):
+        np.random.seed(123456789)
+        x, y = rot_ksamp("linear", 50, 1, k=2)
+        kstest = KSample("Dcorr")
+        stat, pvalue = kstest.test(x, y, reps=100, block_size=10)
+
+        # test the statistic value after block permutation
+        assert_almost_equal(stat, 0.0317, decimal=1)
+
+    def test_block_permutation_pvalue(self):
+        np.random.seed(123456789)
+        x, y = rot_ksamp("linear", 50, 1, k=2)
+        kstest = KSample("Dcorr")
+        stat, pvalue = kstest.test(x, y, reps=100, block_size=10)
+
+        # test the p-value after block permutation
+        assert_almost_equal(pvalue, 0.119, decimal=1)
