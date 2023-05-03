@@ -1,16 +1,24 @@
 import numpy as np
-from hyppo.conditional import KCI
-from hyppo.tools import perm_test
 
 
-def PKCIT(x, y, n_perm=1000, alpha=0.05):
+def gaussian_kernel(X, Y, sigma=1.0):
+    """
+    Computes the Gaussian kernel between two matrices X and Y.
+    """
+    pairwise_dists = np.sum(X ** 2, axis=1)[:, np.newaxis] + np.sum(Y ** 2, axis=1) - 2 * np.dot(X, Y.T)
+    K = np.exp(-pairwise_dists / (2 * sigma ** 2))
+    return K
+
+
+def PKCIT(X, Y, Z, n_perm=1000, alpha=0.05, sigma=1.0):
     """
     Permutation-Based Kernel Conditional Independence Test.
+
     Parameters
     ----------
-    x, y : ndarray
-        Input data matrices. ``x`` and ``y`` must have the same number of
-        columns. That is, the shapes must be ``(n, p)`` and ``(n, 1)`` where
+    X, Y, Z : ndarray
+        Input data matrices. ``X``, ``Y``, and ``Z`` must have the same number of
+        rows. That is, the shapes must be ``(n, p)`` where
         `n` is the dimension of samples and `p` is the number of
         dimensions.
     n_perm : int, optional
@@ -18,6 +26,8 @@ def PKCIT(x, y, n_perm=1000, alpha=0.05):
         test statistic. Default is 1000.
     alpha : float, optional
         The level of the test. Default is 0.05.
+    sigma : float, optional
+        The bandwidth parameter of the Gaussian kernel. Default is 1.0.
 
     Returns
     -------
@@ -26,8 +36,21 @@ def PKCIT(x, y, n_perm=1000, alpha=0.05):
     pvalue : float
         The computed PKCIT p-value.
     """
-    kcit = KCI()
-    obs_stat = kcit.statistic(x, y)
-    null_dist = perm_test(kcit, x, y)
-    pvalue = (null_dist >= obs_stat).sum() / n_perm
+    n = X.shape[0]
+    perm_stats = np.zeros(n_perm)
+    for i in range(n_perm):
+        idx = np.random.permutation(n)
+        X_perm = X[idx, :]
+        Y_perm = Y[idx, :]
+        Z_perm = Z[idx, :]
+        K_XZ = gaussian_kernel(X_perm, Z_perm, sigma=sigma)
+        K_YZ = gaussian_kernel(Y_perm, Z_perm, sigma=sigma)
+        K_XYZ = K_XZ * K_YZ
+        stat = np.sum(K_XYZ) / n
+        perm_stats[i] = stat
+    obs_K_XZ = gaussian_kernel(X, Z, sigma=sigma)
+    obs_K_YZ = gaussian_kernel(Y, Z, sigma=sigma)
+    obs_K_XYZ = obs_K_XZ * obs_K_YZ
+    obs_stat = np.sum(obs_K_XYZ) / n
+    pvalue = (np.sum(perm_stats >= obs_stat) + 1) / (n_perm + 1)
     return obs_stat, pvalue
