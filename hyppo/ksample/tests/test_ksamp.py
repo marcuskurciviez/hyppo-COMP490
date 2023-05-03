@@ -126,7 +126,3 @@ class TestKSampleTest(unittest.TestCase):
         self.kst._permute(X, Y, n_perm, block_size)
         expected_pvalue = 1.0
         self.assertEqual(self.kst.pvalue, expected_pvalue)
-
-
-if __name__ == '__main__':
-    unittest.main()
