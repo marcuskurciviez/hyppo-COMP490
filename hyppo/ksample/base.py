@@ -159,11 +159,9 @@ class KSampleTest(ABC):
         """
         if block_size is not None:
             # perform block permutation
-            permute_args = (X, Y, reps, block_size, self.compute_distance) + self.kwargs.items()
-            stat_perm = Parallel(n_jobs=workers, verbose=0)(
-                delayed(self._permute)(*permute_args, random_state=random_state + i)
-                for i in range(reps))
-            self.pvalue = np.mean(stat_perm >= self.stat)
+            X, Y = args
+            self._permute(X, Y, reps, block_size, self.compute_distance, **self.kwargs)
+            self.stat = self.statistic(*args)
         else:
             # perform regular permutation
             perms = np.array([
@@ -172,6 +170,7 @@ class KSampleTest(ABC):
             pstat = np.array([
                 self.statistic(*np.split(perm, [x.shape[0]]))
                 for perm in perms])
+            self.stat = self.statistic(*args)
             self.pvalue = np.mean(pstat >= self.stat)
 
         return KSampleTestOutput(stat=self.stat, pvalue=self.pvalue)
