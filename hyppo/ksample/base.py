@@ -112,7 +112,7 @@ class KSampleTest(ABC):
             return pairwise_kernels(X, Y, metric=self.compute_distance, **self.kwargs)
         else:
             raise ValueError("Invalid distance metric specified.")
-
+    @abstractmethod
     def statistic(self, *args):
         r"""
         Calulates the *k*-sample test statistic.
@@ -130,7 +130,7 @@ class KSampleTest(ABC):
         stat : float
             The computed *k*-Sample statistic.
         """
-
+    @abstractmethod
     def test(self, *args, reps=1000, workers=1, random_state=None, block_size=None):
         r"""
         Calculates the *k*-sample test statistic and p-value.

@@ -1,6 +1,6 @@
 from operator import concat
 from random import random
-from FIT import cross_validate
+from hyppo.conditional.FIT import cross_validate
 from numpy import floor
 from numpy import np
 from scipy.stats import ttest_1samp
