@@ -1,6 +1,7 @@
 import numpy as np
 from hyppo.conditional.kcipt import PKCIT
 
+
 def test_PKCIT():
     np.random.seed(42)
     n = 100
